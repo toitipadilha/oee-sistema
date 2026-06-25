@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Máquinas{% endblock %}
+{% block page_title %}Máquinas{% endblock %}
+
+{% block content %}
+<div class="grid-2" style="align-items:start">
+    <div class="card">
+        <div class="card-title">Cadastrar Máquina</div>
+        <form method="POST">
+            <input type="hidden" name="acao" value="criar">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Nome *</label>
+                    <input type="text" name="nome" required placeholder="Ex: Torno CNC 01">
+                </div>
+                <div class="form-group">
+                    <label>Código *</label>
+                    <input type="text" name="codigo" required placeholder="Ex: TCN-001">
+                </div>
+                <div class="form-group">
+                    <label>Setor</label>
+                    <input type="text" name="setor" placeholder="Ex: Usinagem">
+                </div>
+                <div class="form-group">
+                    <label>Tempo Ciclo Ideal (segundos/peça)</label>
+                    <input type="number" name="tempo_ciclo_ideal" value="60" min="1" step="0.5">
+                </div>
+            </div>
+            <div style="margin-top:20px">
+                <button type="submit" class="btn btn-primary">+ Cadastrar</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="card">
+        <div class="card-title">Máquinas Cadastradas</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+            {% for m in maquinas %}
+            <div style="display:flex;align-items:center;gap:12px;padding:12px;background:#0f1117;border-radius:8px;border:1px solid #2e3348">
+                <div style="width:8px;height:8px;border-radius:50%;background:{{ '#00c896' if m.ativa else '#4a5068' }};flex-shrink:0"></div>
+                <div style="flex:1">
+                    <div style="font-size:13px;font-weight:600">{{ m.nome }}</div>
+                    <div style="font-size:11px;color:#7a8099">{{ m.codigo }} · {{ m.setor or '—' }} · {{ m.tempo_ciclo_ideal }}s/peça</div>
+                </div>
+                <form method="POST" style="margin:0">
+                    <input type="hidden" name="acao" value="toggle">
+                    <input type="hidden" name="id" value="{{ m.id }}">
+                    <button type="submit" class="btn btn-secondary btn-sm">
+                        {{ 'Desativar' if m.ativa else 'Ativar' }}
+                    </button>
+                </form>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

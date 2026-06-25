@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard — {{ hoje.strftime('%d/%m/%Y') }}{% endblock %}
+
+{% block extra_css %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+
+<!-- STATS PRINCIPAIS -->
+<div class="stats-grid">
+    <div class="stat-card oee">
+        <div class="stat-label">OEE Geral</div>
+        <div class="stat-value oee-color">{{ '%.1f'|format(stats.oee) }}%</div>
+        <div class="progress-bar"><div class="progress-fill {{ 'fill-good' if stats.oee >= 65 else ('fill-warn' if stats.oee >= 50 else 'fill-bad') }}" style="width:{{ [stats.oee,100]|min }}%"></div></div>
+        <div class="stat-sub">Meta: ≥ 65%</div>
+    </div>
+    <div class="stat-card disp">
+        <div class="stat-label">Disponibilidade</div>
+        <div class="stat-value disp-color">{{ '%.1f'|format(stats.disponibilidade) }}%</div>
+        <div class="progress-bar"><div class="progress-fill fill-good" style="width:{{ [stats.disponibilidade,100]|min }}%"></div></div>
+        <div class="stat-sub">Tempo operando</div>
+    </div>
+    <div class="stat-card perf">
+        <div class="stat-label">Performance</div>
+        <div class="stat-value perf-color">{{ '%.1f'|format(stats.performance) }}%</div>
+        <div class="progress-bar"><div class="progress-fill fill-warn" style="width:{{ [stats.performance,100]|min }}%"></div></div>
+        <div class="stat-sub">Velocidade real vs ideal</div>
+    </div>
+    <div class="stat-card qual">
+        <div class="stat-label">Qualidade</div>
+        <div class="stat-value qual-color">{{ '%.1f'|format(stats.qualidade) }}%</div>
+        <div class="progress-bar"><div class="progress-fill" style="width:{{ [stats.qualidade,100]|min }}%; background:#b36aff"></div></div>
+        <div class="stat-sub">Peças boas / total</div>
+    </div>
+    <div class="stat-card neutro">
+        <div class="stat-label">Peças Boas</div>
+        <div class="stat-value" style="color:#e8eaf0">{{ stats.pecas_boas }}</div>
+        <div class="stat-sub">{{ stats.pecas_refugo }} refugos</div>
+    </div>
+    <div class="stat-card neutro">
+        <div class="stat-label">Paradas</div>
+        <div class="stat-value" style="color:#f5a623">{{ '%.0f'|format(stats.total_paradas_min) }}<span style="font-size:16px">min</span></div>
+        <div class="stat-sub">{{ stats.num_registros }} registros hoje</div>
+    </div>
+</div>
+
+<!-- GRÁFICO + MÁQUINAS -->
+<div class="grid-2" style="margin-bottom:24px">
+    <div class="card">
+        <div class="card-title">OEE — Últimos 7 dias</div>
+        <div class="chart-container">
+            <canvas id="chartOEE"></canvas>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-title">Status por Máquina — Hoje</div>
+        {% if maquinas_status %}
+        <div style="display:flex;flex-direction:column;gap:12px">
+            {% for ms in maquinas_status %}
+            <div style="display:flex;align-items:center;gap:12px">
+                <div style="width:8px;height:8px;border-radius:50%;background:{{ '#00c896' if ms.status=='ok' else ('#f5a623' if ms.status=='alerta' else ('#e84040' if ms.status=='critico' else '#4a5068')) }};flex-shrink:0"></div>
+                <div style="flex:1;min-width:0">
+                    <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ ms.maquina.nome }}</div>
+                    <div style="font-size:11px;color:#7a8099">{{ ms.maquina.setor or '—' }} · {{ ms.pecas_boas }} peças</div>
+                </div>
+                <div class="oee-val {{ ms.status if ms.status in ['good','warn','bad'] else ('good' if ms.status=='ok' else ('warn' if ms.status=='alerta' else ('bad' if ms.status=='critico' else 'none'))) }}" style="font-size:16px">
+                    {% if ms.oee is not none %}{{ ms.oee }}%{% else %}—{% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div style="color:#4a5068;font-size:13px;padding:20px 0;text-align:center">
+            Nenhum registro hoje.<br>
+            <a href="/apontar" style="color:#00c896">Apontar produção →</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- PARADAS RECENTES -->
+<div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div class="card-title" style="margin:0">Paradas de Hoje</div>
+        <a href="/paradas" class="btn btn-secondary btn-sm">+ Registrar</a>
+    </div>
+    {% if paradas_hoje %}
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Máquina</th>
+                    <th>Início</th>
+                    <th>Fim</th>
+                    <th>Duração</th>
+                    <th>Motivo</th>
+                    <th>Categoria</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in paradas_hoje %}
+                <tr>
+                    <td style="color:#e8eaf0;font-weight:600">{{ p.maquina.nome }}</td>
+                    <td>{{ p.hora_inicio.strftime('%H:%M') }}</td>
+                    <td>{{ p.hora_fim.strftime('%H:%M') if p.hora_fim else '—' }}</td>
+                    <td>
+                        {% if p.duracao_min %}
+                            <span style="color:#f5a623">{{ '%.0f'|format(p.duracao_min) }}min</span>
+                        {% else %}—{% endif %}
+                    </td>
+                    <td>{{ p.motivo }}</td>
+                    <td>{% if p.categoria %}<span class="tag tag-operador">{{ p.categoria }}</span>{% else %}—{% endif %}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div style="color:#4a5068;font-size:13px;padding:16px 0;text-align:center">Sem paradas registradas hoje. ✓</div>
+    {% endif %}
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const dadosSemana = {{ oee_semana|safe }};
+const labels = dadosSemana.map(d => d.data);
+const valores = dadosSemana.map(d => d.oee);
+
+const ctx = document.getElementById('chartOEE').getContext('2d');
+
+const gradient = ctx.createLinearGradient(0, 0, 0, 200);
+gradient.addColorStop(0, '#00c89644');
+gradient.addColorStop(1, '#00c89600');
+
+new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels,
+        datasets: [{
+            label: 'OEE %',
+            data: valores,
+            borderColor: '#00c896',
+            backgroundColor: gradient,
+            borderWidth: 2,
+            pointBackgroundColor: '#00c896',
+            pointRadius: 4,
+            fill: true,
+            tension: 0.4
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                backgroundColor: '#1a1d27',
+                borderColor: '#2e3348',
+                borderWidth: 1,
+                titleColor: '#7a8099',
+                bodyColor: '#00c896',
+                callbacks: { label: ctx => ` OEE: ${ctx.raw}%` }
+            }
+        },
+        scales: {
+            x: { grid: { color: '#2e3348' }, ticks: { color: '#7a8099', font: { size: 11 } } },
+            y: {
+                grid: { color: '#2e3348' },
+                ticks: { color: '#7a8099', font: { size: 11 }, callback: v => v + '%' },
+                min: 0, max: 100,
+                afterDataLimits(axis) {
+                    axis.min = 0; axis.max = 100;
+                }
+            }
+        }
+    }
+});
+
+// Referência: linha de 65%
+Chart.register({
+    id: 'metaLine',
+    afterDraw(chart) {
+        const {ctx, chartArea: {left, right}, scales: {y}} = chart;
+        if (!y) return;
+        const yPos = y.getPixelForValue(65);
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(left, yPos);
+        ctx.lineTo(right, yPos);
+        ctx.strokeStyle = '#e8404066';
+        ctx.setLineDash([4, 4]);
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        ctx.restore();
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login — OEE Pro</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg: #0f1117; --surface: #1a1d27; --border: #2e3348;
+            --accent: #00c896; --danger: #e84040; --text: #e8eaf0;
+            --text-muted: #7a8099; --text-dim: #4a5068;
+        }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .login-wrap {
+            width: 100%;
+            max-width: 380px;
+        }
+        .login-brand {
+            text-align: center;
+            margin-bottom: 36px;
+        }
+        .login-brand .icon { font-size: 40px; margin-bottom: 10px; }
+        .login-brand .name {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--accent);
+            letter-spacing: -.02em;
+        }
+        .login-brand .sub {
+            font-size: 13px;
+            color: var(--text-dim);
+            margin-top: 4px;
+        }
+        .login-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px;
+        }
+        .login-card h1 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+        .login-card p {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 28px;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+        label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            color: var(--text-muted);
+        }
+        input {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            padding: 12px 14px;
+            font-size: 15px;
+            width: 100%;
+            transition: border-color .15s;
+        }
+        input:focus { outline: none; border-color: var(--accent); }
+        .btn-login {
+            width: 100%;
+            padding: 13px;
+            background: var(--accent);
+            color: #000;
+            font-size: 15px;
+            font-weight: 700;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: background .15s;
+        }
+        .btn-login:hover { background: #00e6ac; }
+        .flash {
+            padding: 11px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 16px;
+            background: #e8404018;
+            border: 1px solid #e8404040;
+            color: var(--danger);
+        }
+        .login-footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 12px;
+            color: var(--text-dim);
+        }
+    </style>
+</head>
+<body>
+<div class="login-wrap">
+    <div class="login-brand">
+        <div class="icon">⚙</div>
+        <div class="name">OEE Pro</div>
+        <div class="sub">Sistema de Eficiência Industrial · Toiti Sistemas</div>
+    </div>
+
+    <div class="login-card">
+        <h1>Entrar</h1>
+        <p>Acesse com suas credenciais de operador ou gestor.</p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for cat, msg in messages %}
+        <div class="flash">✗ {{ msg }}</div>
+        {% endfor %}
+        {% endwith %}
+
+        <form method="POST">
+            <div class="form-group">
+                <label>E-mail</label>
+                <input type="email" name="email" placeholder="seu@email.com" required autofocus>
+            </div>
+            <div class="form-group">
+                <label>Senha</label>
+                <input type="password" name="senha" placeholder="••••••••" required>
+            </div>
+            <button type="submit" class="btn-login">Entrar →</button>
+        </form>
+    </div>
+
+    <div class="login-footer">toitisistemas.com.br · MVP v1.0</div>
+</div>
+</body>
+</html>

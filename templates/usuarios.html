@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Usuários{% endblock %}
+{% block page_title %}Usuários{% endblock %}
+
+{% block content %}
+<div class="grid-2" style="align-items:start">
+    <div class="card">
+        <div class="card-title">Criar Usuário</div>
+        <form method="POST">
+            <input type="hidden" name="acao" value="criar">
+            <div class="form-grid">
+                <div class="form-group full">
+                    <label>Nome *</label>
+                    <input type="text" name="nome" required placeholder="Nome completo">
+                </div>
+                <div class="form-group full">
+                    <label>E-mail *</label>
+                    <input type="email" name="email" required placeholder="email@fabrica.com">
+                </div>
+                <div class="form-group">
+                    <label>Perfil</label>
+                    <select name="perfil">
+                        <option value="operador">Operador</option>
+                        <option value="gestor">Gestor</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Senha *</label>
+                    <input type="password" name="senha" required placeholder="Mínimo 6 caracteres">
+                </div>
+            </div>
+            <div style="margin-top:20px">
+                <button type="submit" class="btn btn-primary">+ Criar Usuário</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="card">
+        <div class="card-title">Usuários do Sistema</div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr><th>Nome</th><th>E-mail</th><th>Perfil</th><th>Status</th><th></th></tr>
+                </thead>
+                <tbody>
+                    {% for u in usuarios %}
+                    <tr>
+                        <td style="font-weight:600;color:#e8eaf0">{{ u.nome }}</td>
+                        <td style="font-size:12px">{{ u.email }}</td>
+                        <td><span class="tag tag-{{ u.perfil }}">{{ u.perfil }}</span></td>
+                        <td><span class="tag {{ 'tag-ativo' if u.ativo else 'tag-inativo' }}">{{ 'Ativo' if u.ativo else 'Inativo' }}</span></td>
+                        <td>
+                            {% if u.id != session.usuario_id %}
+                            <form method="POST" style="margin:0">
+                                <input type="hidden" name="acao" value="toggle">
+                                <input type="hidden" name="id" value="{{ u.id }}">
+                                <button type="submit" class="btn btn-secondary btn-sm">
+                                    {{ 'Desativar' if u.ativo else 'Ativar' }}
+                                </button>
+                            </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

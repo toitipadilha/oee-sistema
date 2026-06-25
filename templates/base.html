@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}OEE Sistema{% endblock %} — Toiti Sistemas</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg: #0f1117;
+            --surface: #1a1d27;
+            --surface2: #22263a;
+            --border: #2e3348;
+            --accent: #00c896;
+            --accent-dim: #00c89622;
+            --warn: #f5a623;
+            --danger: #e84040;
+            --text: #e8eaf0;
+            --text-muted: #7a8099;
+            --text-dim: #4a5068;
+            --oee-good: #00c896;
+            --oee-warn: #f5a623;
+            --oee-bad: #e84040;
+            --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            --mono: 'Cascadia Code', 'Consolas', monospace;
+            --nav-w: 220px;
+        }
+
+        body {
+            font-family: var(--font);
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* ── NAV ── */
+        nav {
+            width: var(--nav-w);
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0; left: 0; bottom: 0;
+            z-index: 100;
+            transition: transform .25s ease;
+        }
+
+        .nav-logo {
+            padding: 20px 20px 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .nav-logo .brand {
+            font-size: 13px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: .12em;
+        }
+
+        .nav-logo .product {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--accent);
+            letter-spacing: -.02em;
+            margin-top: 2px;
+        }
+
+        .nav-logo .version {
+            font-size: 11px;
+            color: var(--text-dim);
+            margin-top: 2px;
+        }
+
+        .nav-links {
+            flex: 1;
+            padding: 12px 0;
+            overflow-y: auto;
+        }
+
+        .nav-section {
+            padding: 16px 20px 6px;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: .14em;
+            color: var(--text-dim);
+        }
+
+        .nav-links a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 20px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 14px;
+            transition: all .15s;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-links a:hover {
+            color: var(--text);
+            background: var(--accent-dim);
+            border-left-color: var(--accent);
+        }
+
+        .nav-links a.active {
+            color: var(--accent);
+            background: var(--accent-dim);
+            border-left-color: var(--accent);
+        }
+
+        .nav-links a .icon { width: 18px; text-align: center; font-size: 16px; }
+
+        .nav-user {
+            padding: 16px 20px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-user .avatar {
+            width: 32px; height: 32px;
+            background: var(--accent);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 13px; font-weight: 700; color: #000;
+            flex-shrink: 0;
+        }
+
+        .nav-user .info { flex: 1; min-width: 0; }
+        .nav-user .info .name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .nav-user .info .role { font-size: 11px; color: var(--text-dim); text-transform: capitalize; }
+        .nav-user .logout { color: var(--text-dim); text-decoration: none; font-size: 18px; }
+        .nav-user .logout:hover { color: var(--danger); }
+
+        /* ── MAIN ── */
+        .main {
+            margin-left: var(--nav-w);
+            flex: 1;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .topbar {
+            height: 56px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 28px;
+            gap: 16px;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .hamburger {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text);
+            font-size: 22px;
+            cursor: pointer;
+        }
+
+        .page-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .topbar-right {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .badge-time {
+            font-family: var(--mono);
+            font-size: 12px;
+            color: var(--text-dim);
+        }
+
+        .content {
+            padding: 28px;
+            flex: 1;
+        }
+
+        /* ── ALERTS ── */
+        .flash-msgs { margin-bottom: 20px; }
+
+        .flash {
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .flash.success { background: #00c89618; border: 1px solid #00c89640; color: var(--accent); }
+        .flash.error   { background: #e8404018; border: 1px solid #e8404040; color: var(--danger); }
+
+        /* ── CARDS ── */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .card-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: .1em;
+            color: var(--text-dim);
+            margin-bottom: 12px;
+        }
+
+        /* ── STAT CARDS ── */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+        }
+
+        .stat-card.oee::before    { background: var(--accent); }
+        .stat-card.disp::before   { background: #4a9eff; }
+        .stat-card.perf::before   { background: var(--warn); }
+        .stat-card.qual::before   { background: #b36aff; }
+        .stat-card.neutro::before { background: var(--border); }
+
+        .stat-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: .1em;
+            color: var(--text-dim);
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 36px;
+            font-weight: 700;
+            font-family: var(--mono);
+            line-height: 1;
+        }
+
+        .stat-value.oee-color { color: var(--accent); }
+        .stat-value.disp-color { color: #4a9eff; }
+        .stat-value.perf-color { color: var(--warn); }
+        .stat-value.qual-color { color: #b36aff; }
+
+        .stat-sub { font-size: 12px; color: var(--text-dim); margin-top: 6px; }
+
+        /* OEE badge colors */
+        .oee-val { font-family: var(--mono); font-weight: 700; }
+        .oee-val.good  { color: var(--oee-good); }
+        .oee-val.warn  { color: var(--oee-warn); }
+        .oee-val.bad   { color: var(--oee-bad); }
+        .oee-val.none  { color: var(--text-dim); }
+
+        /* ── FORMS ── */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-group.full { grid-column: 1 / -1; }
+
+        label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            color: var(--text-muted);
+        }
+
+        input, select, textarea {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            padding: 10px 14px;
+            font-size: 14px;
+            font-family: var(--font);
+            transition: border-color .15s;
+            width: 100%;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        select option { background: var(--surface); }
+
+        textarea { resize: vertical; min-height: 80px; }
+
+        /* ── BUTTONS ── */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all .15s;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #000;
+        }
+
+        .btn-primary:hover { background: #00e6ac; }
+
+        .btn-secondary {
+            background: var(--surface2);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+
+        .btn-danger {
+            background: #e8404020;
+            color: var(--danger);
+            border: 1px solid var(--danger);
+        }
+
+        .btn-sm { padding: 6px 12px; font-size: 12px; }
+
+        /* ── TABLE ── */
+        .table-wrap { overflow-x: auto; }
+
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+
+        th {
+            text-align: left;
+            padding: 10px 14px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            color: var(--text-dim);
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-muted);
+        }
+
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: var(--surface2); color: var(--text); }
+
+        /* ── GRID LAYOUTS ── */
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+
+        /* ── TAGS ── */
+        .tag {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 100px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .tag-admin   { background: #b36aff22; color: #b36aff; }
+        .tag-gestor  { background: #4a9eff22; color: #4a9eff; }
+        .tag-operador{ background: #00c89622; color: var(--accent); }
+        .tag-ativo   { background: #00c89622; color: var(--accent); }
+        .tag-inativo { background: #e8404022; color: var(--danger); }
+
+        /* ── PROGRESS BAR ── */
+        .progress-bar {
+            height: 6px;
+            background: var(--surface2);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 6px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width .4s ease;
+        }
+
+        .fill-good { background: var(--oee-good); }
+        .fill-warn { background: var(--oee-warn); }
+        .fill-bad  { background: var(--oee-bad); }
+
+        /* ── MOBILE ── */
+        .nav-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: #00000088;
+            z-index: 99;
+        }
+
+        @media (max-width: 768px) {
+            nav { transform: translateX(-100%); }
+            nav.open { transform: translateX(0); }
+            .nav-overlay.open { display: block; }
+            .main { margin-left: 0; }
+            .hamburger { display: block; }
+            .content { padding: 16px; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .grid-2, .grid-3 { grid-template-columns: 1fr; }
+            .stat-value { font-size: 28px; }
+            .topbar { padding: 0 16px; }
+        }
+
+        @media (max-width: 400px) {
+            .stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+            .stat-card { padding: 14px; }
+            .stat-value { font-size: 24px; }
+        }
+
+        /* ── CHART AREA ── */
+        .chart-container { height: 200px; position: relative; }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<div class="nav-overlay" id="overlay" onclick="closeNav()"></div>
+
+<nav id="sidebar">
+    <div class="nav-logo">
+        <div class="brand">Toiti Sistemas</div>
+        <div class="product">⚙ OEE Pro</div>
+        <div class="version">MVP v1.0</div>
+    </div>
+
+    <div class="nav-links">
+        <div class="nav-section">Principal</div>
+        <a href="{{ url_for('dashboard') }}" class="{% if request.endpoint == 'dashboard' %}active{% endif %}">
+            <span class="icon">📊</span> Dashboard
+        </a>
+        <a href="{{ url_for('apontar') }}" class="{% if request.endpoint == 'apontar' %}active{% endif %}">
+            <span class="icon">✅</span> Apontar Produção
+        </a>
+        <a href="{{ url_for('paradas') }}" class="{% if request.endpoint == 'paradas' %}active{% endif %}">
+            <span class="icon">⏸</span> Registrar Parada
+        </a>
+        <a href="{{ url_for('relatorios') }}" class="{% if request.endpoint == 'relatorios' %}active{% endif %}">
+            <span class="icon">📈</span> Relatórios
+        </a>
+
+        {% if session.get('perfil') in ['admin', 'gestor'] %}
+        <div class="nav-section">Administração</div>
+        <a href="{{ url_for('maquinas') }}" class="{% if request.endpoint == 'maquinas' %}active{% endif %}">
+            <span class="icon">🏭</span> Máquinas
+        </a>
+        {% endif %}
+        {% if session.get('perfil') == 'admin' %}
+        <a href="{{ url_for('usuarios') }}" class="{% if request.endpoint == 'usuarios' %}active{% endif %}">
+            <span class="icon">👤</span> Usuários
+        </a>
+        {% endif %}
+    </div>
+
+    <div class="nav-user">
+        <div class="avatar">{{ session.get('nome', 'U')[0].upper() }}</div>
+        <div class="info">
+            <div class="name">{{ session.get('nome', '') }}</div>
+            <div class="role">{{ session.get('perfil', '') }}</div>
+        </div>
+        <a href="{{ url_for('logout') }}" class="logout" title="Sair">⎋</a>
+    </div>
+</nav>
+
+<div class="main">
+    <div class="topbar">
+        <button class="hamburger" onclick="openNav()">☰</button>
+        <span class="page-title">{% block page_title %}{% endblock %}</span>
+        <div class="topbar-right">
+            <span class="badge-time" id="clock"></span>
+        </div>
+    </div>
+
+    <div class="content">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-msgs">
+            {% for cat, msg in messages %}
+            <div class="flash {{ cat }}">
+                {{ '✓' if cat == 'success' else '✗' }} {{ msg }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </div>
+</div>
+
+<script>
+function openNav() {
+    document.getElementById('sidebar').classList.add('open');
+    document.getElementById('overlay').classList.add('open');
+}
+
+function closeNav() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('overlay').classList.remove('open');
+}
+
+function updateClock() {
+    const now = new Date();
+    const h = String(now.getHours()).padStart(2,'0');
+    const m = String(now.getMinutes()).padStart(2,'0');
+    const s = String(now.getSeconds()).padStart(2,'0');
+    const el = document.getElementById('clock');
+    if (el) el.textContent = `${h}:${m}:${s}`;
+}
+
+setInterval(updateClock, 1000);
+updateClock();
+
+function oeeClass(val) {
+    if (val === null || val === undefined) return 'none';
+    if (val >= 65) return 'good';
+    if (val >= 50) return 'warn';
+    return 'bad';
+}
+
+function fillClass(val) {
+    if (val >= 65) return 'fill-good';
+    if (val >= 50) return 'fill-warn';
+    return 'fill-bad';
+}
+</script>
+
+{% block extra_js %}{% endblock %}
+</body>
+</html>
